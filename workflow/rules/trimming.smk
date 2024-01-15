@@ -6,7 +6,7 @@ rule initialize_qc:
     output:
         temp(
             expand(
-                "Intermediate/qc/{{sample}}/{{sample}}_raw_{fraction}.fastq.gz",
+                "Intermediate/qc/raw/{{sample}}_{fraction}.fastq.gz",
                 fraction=FRACTIONS,
             )
         ),
@@ -31,7 +31,7 @@ rule deduplicate:
     output:
         temp(
             expand(
-                "Intermediate/qc/{{sample}}/{{sample}}_deduplicated_{fraction}.fastq.gz",
+                "Intermediate/qc/deduplicated/{{sample}}_{fraction}.fastq.gz",
                 fraction=FRACTIONS,
             )
         ),
@@ -54,9 +54,11 @@ rule fastp:
     input:
         sample=rules.deduplicate.output,
     output:
-        trimmed=expand(
-            "Intermediate/qc/{{sample}}/{{sample}}_trimmed_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
+        trimmed=temp(
+            expand(
+                "Intermediate/qc/trimmed/{{sample}}_{fraction}.fastq.gz",
+                fraction=FRACTIONS,
+            )
         ),
         html="Intermediate/reports/trimming/{sample}.html",
         json="Intermediate/reports/trimming/{sample}.json",

@@ -5,3 +5,4 @@ logs/**
 .snakemake/**
 
 test
+.DS_Store
