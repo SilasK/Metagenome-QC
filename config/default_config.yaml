@@ -1,1 +1,8 @@
 # Use this file to define all default values
+
+threads_simple: 2
+threads_default: 4
+
+trim_mean_quality: 15
+trim_base_phred: 5
+trim_min_length: 31
