@@ -1,8 +1,13 @@
 # Use this file to define all default values
 
 threads_simple: 2
-threads_default: 4
+threads: 8
+
+mem_simple: 1GB
+mem_default: 60GB
+
+importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
 trim_mean_quality: 15
-trim_base_phred: 5
+trim_base_phred: 8
 trim_min_length: 31
