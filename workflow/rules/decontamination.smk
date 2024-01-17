@@ -15,11 +15,11 @@ def get_kraken_db_files(wildcards):
     )
 
 
-def calculate_kraken_memory(wildcards, overhead=7000):
+def calculate_kraken_memory(wildcards, input, overhead=7000):
     "Calculate db size of kraken db. in MB"
-    "depending on wildcard 'db_name' "
+    " depending on input.db_files"
 
-    db_size_bytes = sum(os.path.getsize(f) for f in get_kraken_db_files(wildcards))
+    db_size_bytes = sum(os.path.getsize(f) for f in input.db_files)
 
     return db_size_bytes // 1024**2 + 1 + overhead
 
@@ -34,7 +34,7 @@ rule kraken:
         db_files=get_kraken_db_files,
     output:
         report="Intermediate/reports/decontamination/{sample}.txt",
-        clean=expand(
+        clean_reads=expand(
             "QC/reads/{{sample}}_{fraction}.fastq.gz",
             fraction=FRACTIONS,
         ),
@@ -44,7 +44,7 @@ rule kraken:
         "../envs/kraken.yaml"
     params:
         paired="--paired",
-        outdir=lambda wc, output: Path(output.clean[0]).parent,
+        outdir=lambda wc, output: Path(output.clean_reads[0]).parent,
     resources:
         mem_mb=calculate_kraken_memory,
     threads: config["threads"]
@@ -58,4 +58,4 @@ rule kraken:
         " --unclassified-out {params.outdir}/{sample}_R#.fastq "
         " {params.paired} "
         " {input.reads} "
-        " 2> {log} "
+        " &> {log} "

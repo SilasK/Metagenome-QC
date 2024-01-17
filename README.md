@@ -19,3 +19,15 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 * Replace `<name>` with the workflow name (can be the same as `<repo>`).
 * Replace `<description>` with a description of what the workflow does.
 * The workflow will occur in the snakemake-workflow-catalog once it has been made public. Then the link under "Usage" will point to the usage instructions if `<owner>` and `<repo>` were correctly set.
+
+
+
+I use FastP:
+
+
+Kraken for decontamination with this index https://zenodo.org/records/8339732
+
+reccomended by 
+Pangenome databases provide superior host removal and mycobacteria classification from clinical metagenomic data
+ View ORCID ProfileMichael B. Hall,  View ORCID ProfileLachlan J.M. Coin
+doi: https://doi.org/10.1101/2023.09.18.558339
