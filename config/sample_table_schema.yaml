@@ -1,0 +1,27 @@
+description: A example schema for a pipeline.
+imports:
+  - http://schema.databio.org/pep/2.0.0.yaml
+properties:
+  samples:
+    type: array
+    items:
+      type: object
+      properties:
+        sample_name:
+          type: string
+          description: "Name of the sample"
+        R1:
+          type: string
+          description: "Raw Fastq file for read 1"
+        R2:
+          type: string
+          description: "Raw Fastq file for read 2"
+      required_files:
+        - R1
+      files:
+        - R1
+        - R2
+
+required:
+  - samples
+  - config

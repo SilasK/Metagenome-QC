@@ -14,10 +14,6 @@ snakemake_dir = Path(workflow.snakefile).parent.resolve()
 configfile: f"{snakemake_dir.parent}/config/default_config.yaml"
 
 
-SAMPLES = ["sample1", "sample2"]  # HACK
-FRACTIONS = ["R1", "R2"]
-
-
 include: "rules/input_functions.smk"
 include: "rules/trimming.smk"
 
