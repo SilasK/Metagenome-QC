@@ -19,6 +19,6 @@ print(pep.sample_table)
 
 def get_raw_fastq(wildcards):
     headers = ["Reads_raw_" + f for f in FRACTIONS]
-    fastq_dir = config["fastq_dir"]
+    fastq_dir = Path(config["fastq_dir"])
 
     return [fastq_dir / f for f in pep.sample_table.loc[wildcards.sample, headers]]
