@@ -73,7 +73,11 @@ rule fastp:
         f" --cut_mean_quality {config['trim_mean_quality']} "
         " --dedup",
         # interfered cut_tail
-    threads: config["threads_simple"]
+    threads: config["threads"]
+    benchmark:
+        "logs/benhcmark/fastp/{sample}.tsv"
+    resources:
+        mem_mb= config["mem_default"]
     wrapper:
         "v3.3.3/bio/fastp"
 

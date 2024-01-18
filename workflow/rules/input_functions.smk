@@ -1,6 +1,6 @@
 
 
-pepfile: f"{snakemake_dir.parent}/config/sample_table_config.yaml"
+pepfile: "sample_table_config.yaml"
 
 
 # pepschema: f"{snakemake_dir.parent}/config/sample_table_schema.yaml"
@@ -13,8 +13,6 @@ if PAIRED:
     FRACTIONS = ["R1", "R2"]
 else:
     FRACTIONS = ["se"]
-
-print(pep.sample_table)
 
 
 def get_raw_fastq(wildcards):
