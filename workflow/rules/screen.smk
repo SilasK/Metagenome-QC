@@ -3,7 +3,7 @@
 
 rule generate_sketch:
     input:
-        unpack(get_input_fastq),
+        get_screen_input_fastq,
     output:
         "Intermediate/screen/sketches/{sample}.sketch.gz",
     log:
@@ -19,7 +19,7 @@ rule generate_sketch:
         ssu=False,
         name0="{sample}",
         depth=True,
-        overwrite=True
+        overwrite=True,
     wrapper:
         BBTOOLS_WRAPPER
 
@@ -40,18 +40,18 @@ rule compare_sketch:
         extra="alltoall",
         format=3,
         records=5000,
-        overwrite=True
+        overwrite=True,
     wrapper:
         BBTOOLS_WRAPPER
-       
+
 
 rule send_sketch:
     input:
-        rules.generate_sketch.output
+        rules.generate_sketch.output,
     output:
-        "Intermediate/screen/results/{sample}.tsv"
+        "Intermediate/screen/results/{sample}.tsv",
     log:
-        "logs/screen/send_sketch.log",
+        "logs/screen/send_sketch/{sample}.log",
     threads: 1
     resources:
         mem=config["mem_simple"],
@@ -62,8 +62,12 @@ rule send_sketch:
         printqfname=True,
         printvolume=True,
         color=False,
-        overwrite=True
+        overwrite=True,
     wrapper:
         BBTOOLS_WRAPPER
-       
 
+
+rule screen:
+    input:
+        expand(rules.send_sketch.output, sample=SAMPLES),
+        "QC/screen/sketch_comparison.tsv.gz",

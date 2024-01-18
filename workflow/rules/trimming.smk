@@ -77,7 +77,7 @@ rule fastp:
     benchmark:
         "logs/benhcmark/fastp/{sample}.tsv"
     resources:
-        mem_mb= config["mem_default"]
+        mem_mb=config["mem_default"],
     wrapper:
         "v3.3.3/bio/fastp"
 
