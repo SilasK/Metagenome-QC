@@ -3,8 +3,8 @@
 threads_simple: 2
 threads: 8
 
-mem_simple: 1GB
-mem_default: 40GB
+mem_simple: 1000
+mem_default: 40000
 
 importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
