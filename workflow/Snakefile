@@ -13,6 +13,7 @@ snakemake_dir = Path(workflow.snakefile).parent.resolve()
 # include default config values
 configfile: f"{snakemake_dir.parent}/config/default_config.yaml"
 
+BBTOOLS_WRAPPER="master/bio/bbtools"
 
 include: "rules/input_functions.smk"
 include: "rules/trimming.smk"
