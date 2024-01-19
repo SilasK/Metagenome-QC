@@ -13,10 +13,10 @@ rule generate_sketch:
         mem=config["mem_simple"],
     params:
         command="bbsketch.sh",
-        samplerate=0.5,
+        processSSU=False,
+        samplerate=0.5,  # sample halve of the file
         minkeycount=2,
         blacklist="nt",
-        ssu=False,
         name0="{sample}",
         depth=True,
         overwrite=True,
@@ -26,7 +26,7 @@ rule generate_sketch:
 
 rule compare_sketch:
     input:
-        expand(rules.generate_sketch.output, sample=SAMPLES),
+        flag=expand(rules.generate_sketch.output, sample=SAMPLES),
     output:
         "QC/screen/sketch_comparison.tsv.gz",
     priority: 100
@@ -37,7 +37,7 @@ rule compare_sketch:
         mem=config["mem_default"],
     params:
         command="comparesketch.sh",
-        extra="alltoall",
+        extra=lambda wc, input: f"alltoall {input.flag}",
         format=3,
         records=5000,
         overwrite=True,
