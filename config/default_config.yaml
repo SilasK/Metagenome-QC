@@ -8,9 +8,10 @@ mem_default: 10
 
 # importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
+
 #trim_mean_quality: 15
 #trim_base_phred: 8
-#trim_min_length: 31
+#trim_min_length: 75
 
 is_illumina: true
 

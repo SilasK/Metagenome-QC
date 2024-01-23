@@ -70,6 +70,7 @@ rule fastp:
         " --detect_adapter_for_pe"
         " --correction "
         " --cut_tail"
+        " --dup_calc_accuracy 5 "
         f" --cut_mean_quality {config['trim_mean_quality']} "
         " --dedup",
         # interfered cut_tail
