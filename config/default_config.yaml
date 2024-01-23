@@ -3,11 +3,28 @@
 threads_simple: 2
 threads: 8
 
-mem_simple: 1000
-mem_default: 40000
+mem_simple: 2
+mem_default: 10
 
-importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
+# importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
-trim_mean_quality: 15
-trim_base_phred: 8
-trim_min_length: 31
+#trim_mean_quality: 15
+#trim_base_phred: 8
+#trim_min_length: 31
+
+is_illumina: true
+
+# adapter trimming
+preprocess_max_ns: 6
+adapters:
+  - adapters
+  - artifacts
+preprocess_minimum_passing_read_length: 51
+
+adapter_trimming_allow_substitutions: 1
+
+## deduplication
+deduplicate_reads: true
+duplicates_allow_substitutions: 2
+preprocess_minimum_base_quality: 8
+preprocess_average_base_quality: 15

@@ -18,10 +18,11 @@ BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
 
 include: "rules/input_functions.smk"
-include: "rules/trimming.smk"
+#include: "rules/trimming.smk"
+include: "rules/qc.smk"
 
 
-get_screen_input_fastq = rules.fastp.output.trimmed
+get_screen_input_fastq = rules.quality_trimming.output.out
 
 
 include: "rules/screen.smk"
@@ -29,4 +30,5 @@ include: "rules/screen.smk"
 
 rule all:
     input:
-        "reports/trimming/multiqc.html",
+        #"reports/trimming/multiqc.html",
+        expand("QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS,sample=SAMPLES),
