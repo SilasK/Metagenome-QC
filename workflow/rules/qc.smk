@@ -103,8 +103,8 @@ rule quality_trimming:
     output:
         out=expand("QC/reads/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS),
         stats="Intermediate/stats/qc/{sample}/phix_mapping_stats.txt",
-        bhist="Intermediate/stats/qc/{sample}/base_histogramm.txt",
-        qhist="Intermediate/stats/qc/{sample}/quality_histogramm.txt",
+        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
+        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
         gchist="Intermediate/stats/qc/{sample}/gc_hisogramm.txt",
         aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
         lhist="Intermediate/stats/qc/{sample}/length_histogramm.txt",
@@ -135,3 +135,38 @@ rule quality_trimming:
         overwrite=True,
     wrapper:
         "v3.3.5/bio/bbtools"
+
+
+
+
+
+
+rule calculate_insert_size:
+    input:
+        get_quality_controlled_reads,
+    output:
+        ihist="Intermediate/stats/qc/{sample}/insert_sizes.txt",
+    log:
+        "logs/qc/insert_size/{sample}.log",
+    threads: config["threads_simple"]
+    resources:
+        mem_mb=config["mem_simple"]*1e3,
+    params:
+        command="bbmerge.sh",
+        extend2=50,
+        k=62,
+        iterations=3,
+        extra="loose",
+        mininsert0=25,
+        minoverlap0=8,
+        realloc=True,
+        prefilter=True,
+        merge=False,
+        minprob=0.8,
+        pigz=True,
+        unpigz=True,
+        overwrite=True,
+    wrapper:
+        "v3.3.5/bio/bbtools"
+
+

@@ -23,7 +23,7 @@ include: "rules/qc.smk"
 
 
 get_screen_input_fastq = rules.quality_trimming.output.out
-
+get_quality_controlled_reads = rules.quality_trimming.output.out
 
 include: "rules/screen.smk"
 
@@ -34,3 +34,7 @@ rule all:
         expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
+        expand( "Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES
+        ),
+
+       
