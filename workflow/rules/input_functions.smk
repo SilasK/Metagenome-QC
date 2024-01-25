@@ -20,3 +20,8 @@ def get_raw_fastq(wildcards):
     fastq_dir = Path(config["fastq_dir"])
 
     return [fastq_dir / f for f in pep.sample_table.loc[wildcards.sample, headers]]
+
+
+
+def get_quality_controlled_reads(wildcards):
+    return expand("QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS,sample=wildcards.sample)

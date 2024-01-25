@@ -1,12 +1,12 @@
 
 
-rule initialize_qc:
+rule adapter_trimming:
     input:
         get_raw_fastq,
     output:
         out=temp(
             expand(
-                "Intermediate/qc/reads/raw/{{sample}}_{fraction}.fastq.gz",
+                "Intermediate/qc/reads/adapter_trimmed/{{sample}}_{fraction}.fastq.gz",
                 fraction=FRACTIONS,
             )
         ),
@@ -15,44 +15,20 @@ rule initialize_qc:
         gchist="Intermediate/stats/raw/{sample}/gc_hisogramm.txt",
         aqhist="Intermediate/stats/raw/{sample}/average_quality.txt",
         lhist="Intermediate/stats/raw/{sample}/length_histogramm.txt",
-    log:
-        "logs/qc/init/{sample}.log",
-    priority: 80
-    threads: config["threads_simple"]
-    resources:
-        mem_mb=config["mem_simple"] * 1e3,
-    params:
-        command="reformat.sh",
-        verifypaired=True,
-        extra=config["importqc_params"],
-        pigz=True,
-        unpigz=True,
-        overwrite=True,
-    conda:
-        "%s/required_packages.yaml" % CONDAENV
-    threads: config.get("simplejob_threads", 1)
-    wrapper:
-        "v3.3.5/bio/bbtools"
-
-
-rule adapter_trimming:
-    input:
-        rules.initialize_qc.output.out,
-    output:
-        out=temp(
-            expand(
-                "Intermediate/qc/reads/adapter_trimmed/{{sample}}_{fraction}.fastq.gz",
-                fraction=FRACTIONS,
-            )
-        ),
         stats="Intermediate/stats/qc/{sample}/adapter_trimming_stats.txt",
     log:
         "logs/qc/trim_adapters/{sample}.log",
     threads: config["threads_simple"]
     resources:
-        mem_mb=config["mem_simple"] * 1e3,
+        mem_mb=config["mem_simple"] * 1000,
+        time_min= config["time_short"]*60,
     params:
         command="bbduk.sh",
+        # verifypaired=True,
+        iupacToN=True,
+        touppercase=True,
+        qout=33,
+        #addslash=True,
         maxns=config["preprocess_max_ns"],
         ktrim="r ",
         k=23,
@@ -60,9 +36,9 @@ rule adapter_trimming:
         hdist=config["adapter_trimming_allow_substitutions"],
         trimpairsevenly=True,
         trimbyoverlap=True,
-        ftm=5 if config["is_illumina"] else 0,
-        verifypaired=True,
-        ref=config["preprocess_adapters"],
+        #ftm=5 if config["is_illumina"] else 0,
+        ref=config["adapters"],
+        json=True,
         pigz=True,
         unpigz=True,
         prealloc=True,
@@ -92,7 +68,8 @@ rule deduplicate_reads:
         dedupe=config["deduplicate_reads"],
     threads: config["threads"]
     resources:
-        mem_mb=config["mem_large"] * 1e3,
+        mem_mb=config["mem_large"] * 1000,
+        time_min= config["time_short"]*60,
     wrapper:
         "v3.3.5/bio/bbtools"
 
@@ -115,11 +92,11 @@ rule quality_trimming:
         "logs/qc/trim_quality/{sample}.log",
     threads: config["threads_simple"]
     resources:
-        mem_mb=config["mem_simple"] * 1e3,
+        mem_mb=config["mem_simple"] * 1000,
     params:
         command="bbduk.sh",
-        error_correction_pe=True,
-        ref="phix,artefacts",
+        ecco=True,
+        ref="phix",
         k=31,
         entropytrim="rl",
         entropy=0.5,
@@ -129,6 +106,8 @@ rule quality_trimming:
         minlength=config["preprocess_minimum_passing_read_length"],
         minavgquality=config["preprocess_average_base_quality"],
         gcbins="auto",
+        ordered=True,
+        json=True,
         pigz=True,
         unpigz=True,
         prealloc=True,
@@ -150,7 +129,7 @@ rule calculate_insert_size:
         "logs/qc/insert_size/{sample}.log",
     threads: config["threads_simple"]
     resources:
-        mem_mb=config["mem_simple"]*1e3,
+        mem_mb=config["mem_simple"]*1000,
     params:
         command="bbmerge.sh",
         extend2=50,

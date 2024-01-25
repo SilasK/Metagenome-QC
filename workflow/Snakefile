@@ -19,11 +19,10 @@ BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
 include: "rules/input_functions.smk"
 # include: "rules/trimming.smk"
+
+
 include: "rules/qc.smk"
-
-
 get_screen_input_fastq = rules.quality_trimming.output.out
-get_quality_controlled_reads = rules.quality_trimming.output.out
 
 include: "rules/screen.smk"
 

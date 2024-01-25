@@ -5,7 +5,9 @@ threads: 8
 
 mem_simple: 2
 mem_default: 10
+mem_large: 60
 
+time_short: 2
 # importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
 
