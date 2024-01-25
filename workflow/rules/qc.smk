@@ -44,7 +44,7 @@ rule adapter_trimming:
         prealloc=True,
         overwrite=True,
     wrapper:
-        "v3.3.5/bio/bbtools"
+        BBTOOLS_WRAPPER
 
 
 rule deduplicate_reads:
@@ -71,23 +71,15 @@ rule deduplicate_reads:
         mem_mb=config["mem_large"] * 1000,
         time_min= config["time_short"]*60,
     wrapper:
-        "v3.3.5/bio/bbtools"
+        BBTOOLS_WRAPPER
 
 
 rule quality_trimming:
     input:
         rules.deduplicate_reads.output.out,
     output:
-        out=expand("QC/reads/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS),
+        out= temp(expand("Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS)),
         stats="Intermediate/stats/qc/{sample}/phix_mapping_stats.txt",
-        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
-        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
-        gchist="Intermediate/stats/qc/{sample}/gc_hisogramm.txt",
-        aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
-        lhist="Intermediate/stats/qc/{sample}/length_histogramm.txt",
-        khistout="Intermediate/stats/qc/{sample}/kmer_histogramm.txt",
-        cardinalityout="Intermediate/stats/qc/{sample}/cardinality.txt",
-        enthist="Intermediate/stats/qc/{sample}/entropy_histogramm.txt",
     log:
         "logs/qc/trim_quality/{sample}.log",
     threads: config["threads_simple"]
@@ -105,7 +97,6 @@ rule quality_trimming:
         trimq=config["preprocess_minimum_base_quality"],
         minlength=config["preprocess_minimum_passing_read_length"],
         minavgquality=config["preprocess_average_base_quality"],
-        gcbins="auto",
         ordered=True,
         json=True,
         pigz=True,
@@ -113,11 +104,11 @@ rule quality_trimming:
         prealloc=True,
         overwrite=True,
     wrapper:
-        "v3.3.5/bio/bbtools"
+        BBTOOLS_WRAPPER
 
 
 
-
+#### Reporting
 
 
 rule calculate_insert_size:
@@ -146,6 +137,32 @@ rule calculate_insert_size:
         unpigz=True,
         overwrite=True,
     wrapper:
-        "v3.3.5/bio/bbtools"
+        BBTOOLS_WRAPPER
 
 
+rule reporting_qc:
+    input:
+        get_quality_controlled_reads
+    output:
+        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
+        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
+        bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
+        gchist="Intermediate/stats/qc/{sample}/gc_hisogramm.txt",
+        aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
+        lhist="Intermediate/stats/qc/{sample}/length_histogramm.txt",
+        khist="Intermediate/stats/qc/{sample}/kmer_histogramm.txt",
+        cardinality="Intermediate/stats/qc/{sample}/cardinality.txt",
+        enthist="Intermediate/stats/qc/{sample}/entropy_histogramm.txt",
+    log:
+        "logs/qc/reporting_qc/{sample}.log",
+    threads: config["threads_simple"]
+    resources:
+        mem_mb=config["mem_simple"] * 1000,
+    params:
+        command="bbduk.sh",
+        gcbins="auto",
+        json=True,
+        unpigz=True,
+        overwrite=True,
+    wrapper:
+        BBTOOLS_WRAPPER

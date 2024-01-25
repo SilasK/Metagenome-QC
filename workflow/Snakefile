@@ -13,6 +13,10 @@ snakemake_dir = Path(workflow.snakefile).parent.resolve()
 # include default config values
 configfile: f"{snakemake_dir.parent}/config/default_config.yaml"
 
+# define main database folder
+if config["database_dir"]=="databases":
+    logger.error("database folder is 'databases', you should choose another in the config file")
+DB_DIR = Path(config["database_dir"])
 
 BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
@@ -25,6 +29,7 @@ include: "rules/qc.smk"
 get_screen_input_fastq = rules.quality_trimming.output.out
 
 include: "rules/screen.smk"
+include: "rules/decontamination.smk"
 
 
 rule all:
@@ -35,5 +40,8 @@ rule all:
         ),
         expand( "Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES
         ),
+        expand( "Intermediate/stats/qc/{sample}/quality_boxplots.txt", sample=SAMPLES
+        ),
+        
 
        

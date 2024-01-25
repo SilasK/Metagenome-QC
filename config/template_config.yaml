@@ -1,2 +1,5 @@
 # This file contains only the user most relavant config obtions idelly with comments
 fastq_dir: "/Users/silas/Documents/test_reads/"
+
+
+database_dir: "databases"

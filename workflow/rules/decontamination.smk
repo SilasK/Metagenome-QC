@@ -1,61 +1,92 @@
 import os
 
 
-kraken_db_files = ["hash.k2d", "opts.k2d", "taxo.k2d"]
+kraken_db_files = ("hash.k2d", "opts.k2d", "taxo.k2d")
+
+Kraken_db_folder= DB_DIR/"Kraken/human_pangenome"
 
 
-def get_kraken_db_path(wildcards):
+
+localrules: download_human_pangenome_db, extract_human_pangenome_db
+
+rule download_human_pangenome_db:
+    output:
+        Kraken_db_folder.parent / "k2_HPRC_20230810.tar.gz"
+    log:
+        "logs/download/download_kraken_human_pangenome.log"
+    shell:
+        "wget https://zenodo.org/records/8339732/files/k2_HPRC_20230810.tar.gz -O {output} 2> {log} ;\n"
+
+rule extract_human_pangenome_db:
+    input:
+        Kraken_db_folder.parent / "k2_HPRC_20230810.tar.gz"
+    output:
+        directory(Kraken_db_folder)
+    log:
+        "logs/download/download_kraken_human_pangenome.log"
+    shell:
+        " tar -xzvf {input} -C {resources.tmpdir} 2>> {log} "
+        " mv {resources.tmpdir}/db {output} 2>> {log}"
+
+
+
+
+
+def get_kraken_db_files():
     "depending on wildcard 'db_name'"
-
-
-def get_kraken_db_files(wildcards):
-    "depending on wildcard 'db_name'"
-    return expand(
-        "{path}/{file}", path=get_kraken_db_path(wildcards), file=kraken_db_files
+    return multiext( f"{Kraken_db_folder}/" ,*kraken_db_files
     )
 
 
-def calculate_kraken_memory(wildcards, input, overhead=7000):
+
+Kraken_db_size = 0
+
+def calculate_kraken_memory( overhead=7000):
     "Calculate db size of kraken db. in MB"
     " depending on input.db_files"
 
-    db_size_bytes = sum(os.path.getsize(f) for f in input.db_files)
 
-    return db_size_bytes // 1024**2 + 1 + overhead
+    global Kraken_db_size
+
+    if Kraken_db_size is None:
 
 
-rule kraken:
+        kraken_db_files = get_kraken_db_files()
+        db_size_bytes = sum(os.path.getsize(f) for f in kraken_db_files)
+
+        Kraken_db_size =db_size_bytes // 1024**2 + 1 + overhead
+
+    return Kraken_db_size 
+
+
+rule kraken_pe:
     input:
         reads=expand(
-            "Intermediate/qc/trimmed/{{sample}}_{fraction}.fastq.gz",
+            "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
             fraction=FRACTIONS,
         ),
-        db=get_kraken_db_path,
-        db_files=get_kraken_db_files,
+        db=Kraken_db_folder
     output:
         report="Intermediate/reports/decontamination/{sample}.txt",
-        clean_reads=expand(
-            "QC/reads/{{sample}}_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
-        ),
+        reads= expand("QC/reads/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS),
     log:
-        "log/qc/decontamination/{sample}.log",
+        "logs/qc/decontamination/{sample}.log",
     conda:
         "../envs/kraken.yaml"
-    params:
-        paired="--paired",
-        outdir=lambda wc, output: Path(output.clean_reads[0]).parent,
     resources:
         mem_mb=calculate_kraken_memory,
+        time_min= config["time_short"]*60,
     threads: config["threads"]
     shell:
         " kraken2 "
-        "--db {input.db} "
-        " {params.extra} "
+        " --db {input.db} "
         " --threads {threads} "
         " --output - "
         " --report {output.report} "
-        " --unclassified-out {params.outdir}/{sample}_R#.fastq "
-        " {params.paired} "
+        " --unclassified-out {resources.tmpdir}/{wildcards.sample}_R#.fastq "
+        " --paired "
         " {input.reads} "
         " &> {log} "
+        "; \n"
+        " gzip -c {resources.tmpdir}/{wildcards.sample}_R1.fastq > {output.reads[0]}  2>> {log} ; \n "
+        " gzip -c {resources.tmpdir}/{wildcards.sample}_R2.fastq > {output.reads[1]}  2>> {log} ; \n "
