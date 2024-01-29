@@ -7,15 +7,20 @@ mem_simple: 2
 mem_default: 10
 mem_large: 60
 
+time_long: 12
 time_short: 2
+time_default: 5
 # importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
+literal_adapters: "CTGTCTCTTATACACATCT,ATGTGTATAAGAGACA"
+trim_extra: " trimpolygright=10 trimpolya=10"
+#https://knowledge.illumina.com/library-preparation/general/library-preparation-general-reference_material-list/000001314
 
 #trim_mean_quality: 15
 #trim_base_phred: 8
 #trim_min_length: 75
 
-is_illumina: true
+trim_modulo: true # trim reads to multiple of 5 e.g. remove 151'th base    as illumina have usually multiple of 5
 
 # adapter trimming
 preprocess_max_ns: 6

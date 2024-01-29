@@ -10,20 +10,23 @@ rule adapter_trimming:
                 fraction=FRACTIONS,
             )
         ),
-        bhist="Intermediate/stats/raw/{sample}/base_histogramm.txt",
-        qhist="Intermediate/stats/raw/{sample}/quality_histogramm.txt",
-        gchist="Intermediate/stats/raw/{sample}/gc_hisogramm.txt",
+        bhist="Intermediate/stats/raw/{sample}/base_histogram.txt",
+        qhist="Intermediate/stats/raw/{sample}/quality_histogram.txt",
+        gchist="Intermediate/stats/raw/{sample}/gc_hisogramm.txt",  #*histogram
         aqhist="Intermediate/stats/raw/{sample}/average_quality.txt",
-        lhist="Intermediate/stats/raw/{sample}/length_histogramm.txt",
+        lhist="Intermediate/stats/raw/{sample}/length_histogram.txt",
         stats="Intermediate/stats/qc/{sample}/adapter_trimming_stats.txt",
     log:
         "logs/qc/trim_adapters/{sample}.log",
+    benchmark:
+        "log/benchmark/trim_adapters/{sample}.tsv"
     threads: config["threads_simple"]
     resources:
         mem_mb=config["mem_simple"] * 1000,
-        time_min= config["time_short"]*60,
+        time_min=config["time_short"] * 60,
     params:
         command="bbduk.sh",
+        literal=config["literal_adapters"],
         # verifypaired=True,
         iupacToN=True,
         touppercase=True,
@@ -36,7 +39,7 @@ rule adapter_trimming:
         hdist=config["adapter_trimming_allow_substitutions"],
         trimpairsevenly=True,
         trimbyoverlap=True,
-        #ftm=5 if config["is_illumina"] else 0,
+        ftm=5 if config["trim_modulo"] else 0,
         ref=config["adapters"],
         json=True,
         pigz=True,
@@ -59,6 +62,8 @@ rule deduplicate_reads:
         ),
     log:
         "logs/qc/deduplicate/{sample}.log",
+    benchmark:
+        "log/benchmark/deduplicate_reads/{sample}.tsv"
     params:
         command="clumpify.sh",
         dupesubs=config["duplicates_allow_substitutions"],
@@ -69,7 +74,7 @@ rule deduplicate_reads:
     threads: config["threads"]
     resources:
         mem_mb=config["mem_large"] * 1000,
-        time_min= config["time_short"]*60,
+        time_min=config["time_short"] * 60,
     wrapper:
         BBTOOLS_WRAPPER
 
@@ -78,25 +83,43 @@ rule quality_trimming:
     input:
         rules.deduplicate_reads.output.out,
     output:
-        out= temp(expand("Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS)),
+        out=temp(
+            expand(
+                "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
+                fraction=FRACTIONS,
+            )
+        ),
         stats="Intermediate/stats/qc/{sample}/phix_mapping_stats.txt",
+        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
+        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
+        bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
+        gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
+        aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
+        lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
+        khistout="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
+        enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
     log:
         "logs/qc/trim_quality/{sample}.log",
-    threads: config["threads_simple"]
+    threads: config["threads"]
     resources:
-        mem_mb=config["mem_simple"] * 1000,
+        mem_mb=config["mem_default"] * 1000,
+        time_min=config["time_default"] * 60,
+    benchmark:
+        "log/benchmark/quality_trimming/{sample}.tsv"
     params:
         command="bbduk.sh",
+        extra=config["trim_extra"],
         ecco=True,
         ref="phix",
         k=31,
         entropytrim="rl",
         entropy=0.5,
         hdist=config["adapter_trimming_allow_substitutions"],
-        qtrim="w",
+        qtrim="rl",
         trimq=config["preprocess_minimum_base_quality"],
         minlength=config["preprocess_minimum_passing_read_length"],
         minavgquality=config["preprocess_average_base_quality"],
+        cardinalityout=True,
         ordered=True,
         json=True,
         pigz=True,
@@ -105,7 +128,6 @@ rule quality_trimming:
         overwrite=True,
     wrapper:
         BBTOOLS_WRAPPER
-
 
 
 #### Reporting
@@ -118,9 +140,11 @@ rule calculate_insert_size:
         ihist="Intermediate/stats/qc/{sample}/insert_sizes.txt",
     log:
         "logs/qc/insert_size/{sample}.log",
+    benchmark:
+        "log/benchmark/calculate_insert_size/{sample}.tsv"
     threads: config["threads_simple"]
     resources:
-        mem_mb=config["mem_simple"]*1000,
+        mem_mb=config["mem_simple"] * 1000,
     params:
         command="bbmerge.sh",
         extend2=50,
@@ -142,19 +166,21 @@ rule calculate_insert_size:
 
 rule reporting_qc:
     input:
-        get_quality_controlled_reads
+        get_quality_controlled_reads,
     output:
         bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
         qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
         bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
-        gchist="Intermediate/stats/qc/{sample}/gc_hisogramm.txt",
+        gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
         aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
-        lhist="Intermediate/stats/qc/{sample}/length_histogramm.txt",
-        khist="Intermediate/stats/qc/{sample}/kmer_histogramm.txt",
+        lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
+        khist="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
         cardinality="Intermediate/stats/qc/{sample}/cardinality.txt",
-        enthist="Intermediate/stats/qc/{sample}/entropy_histogramm.txt",
+        enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
     log:
         "logs/qc/reporting_qc/{sample}.log",
+    benchmark:
+        "log/benchmark/reporting_qc/{sample}.tsv"
     threads: config["threads_simple"]
     resources:
         mem_mb=config["mem_simple"] * 1000,

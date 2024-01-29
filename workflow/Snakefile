@@ -13,20 +13,28 @@ snakemake_dir = Path(workflow.snakefile).parent.resolve()
 # include default config values
 configfile: f"{snakemake_dir.parent}/config/default_config.yaml"
 
+
 # define main database folder
-if config["database_dir"]=="databases":
-    logger.error("database folder is 'databases', you should choose another in the config file")
+if config["database_dir"] == "databases":
+    logger.error(
+        "database folder is 'databases', you should choose another in the config file"
+    )
 DB_DIR = Path(config["database_dir"])
 
 BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
 
 include: "rules/input_functions.smk"
+
+
 # include: "rules/trimming.smk"
 
 
 include: "rules/qc.smk"
+
+
 get_screen_input_fastq = rules.quality_trimming.output.out
+
 
 include: "rules/screen.smk"
 include: "rules/decontamination.smk"
@@ -38,10 +46,21 @@ rule all:
         expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
-        expand( "Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES
-        ),
-        expand( "Intermediate/stats/qc/{sample}/quality_boxplots.txt", sample=SAMPLES
-        ),
-        
+        expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
+        expand("Intermediate/stats/qc/{sample}/quality_boxplots.txt", sample=SAMPLES),
 
-       
+
+### pepulate resources for rules that don't have
+
+for r in workflow.rules:
+    if not "mem_mb" in r.resources:
+        # default
+        r.resources["mem_mb"] = config["mem_default"] * 1000
+
+    # add time if ot present. Simple jobs use simple time
+
+    if "time_min" not in r.resources:
+        r.resources["time_min"] = config["time_default"] * 60
+
+    if not "runtime" in r.resources:
+        r.resources["runtime"] = r.resources["time_min"]
