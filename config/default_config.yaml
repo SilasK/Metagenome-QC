@@ -4,35 +4,43 @@ threads_simple: 2
 threads: 8
 
 mem_simple: 2
-mem_default: 10
+mem_default: 20
 mem_large: 60
 
 time_long: 12
 time_short: 2
 time_default: 5
-# importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
-literal_adapters: "CTGTCTCTTATACACATCT,ATGTGTATAAGAGACA"
-trim_extra: " trimpolygright=10 trimpolya=10"
-#https://knowledge.illumina.com/library-preparation/general/library-preparation-general-reference_material-list/000001314
 
-#trim_mean_quality: 15
-#trim_base_phred: 8
-#trim_min_length: 75
 
-trim_modulo: true # trim reads to multiple of 5 e.g. remove 151'th base    as illumina have usually multiple of 5
+trim_mean_quality: 15
+trim_base_phred: 8
+trim_min_length: 75
+adapter_trimming_extra: "--trim_poly_g --trim_poly_a --adapter_fasta /srv/beegfs/scratch/users/k/kiesers/Databases/adapters.fa  --adapter_sequence=CTGTCTCTTATACACATCT --adapter_sequence_r2=ATGTGTATAAGAGACA"
+quality_trim_extra: ""
 
-# adapter trimming
-preprocess_max_ns: 6
-adapters:
-  - adapters
-  - artifacts
-preprocess_minimum_passing_read_length: 51
+## BBduck
+# # importqc_params: "iupacToN=t touppercase=t qout=33 addslash=t trimreaddescription=t"
 
-adapter_trimming_allow_substitutions: 1
+# literal_adapters: "CTGTCTCTTATACACATCT,ATGTGTATAAGAGACA"
+# trim_extra: " trimpolygright=10 trimpolya=10"
+# #https://knowledge.illumina.com/library-preparation/general/library-preparation-general-reference_material-list/000001314
 
-## deduplication
-deduplicate_reads: true
-duplicates_allow_substitutions: 2
-preprocess_minimum_base_quality: 8
-preprocess_average_base_quality: 15
+
+
+# trim_modulo: true # trim reads to multiple of 5 e.g. remove 151'th base    as illumina have usually multiple of 5
+
+# # adapter trimming
+# preprocess_max_ns: 6
+# adapters:
+#   - adapters
+#   - artifacts
+# preprocess_minimum_passing_read_length: 51
+
+# adapter_trimming_allow_substitutions: 1
+
+# ## deduplication
+# deduplicate_reads: true
+# duplicates_allow_substitutions: 2
+# preprocess_minimum_base_quality: 8
+# preprocess_average_base_quality: 15

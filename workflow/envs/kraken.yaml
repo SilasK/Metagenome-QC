@@ -4,4 +4,5 @@ channels:
   - defaults
 dependencies:
   - kraken2>=2.0
+  - pigz
 

@@ -2,6 +2,8 @@
 
 pepfile: "sample_table_config.yaml"
 
+wildcard_constraints: 
+    sample="[A-Za-z0-9]+"
 
 # pepschema: f"{snakemake_dir.parent}/config/sample_table_schema.yaml"
 

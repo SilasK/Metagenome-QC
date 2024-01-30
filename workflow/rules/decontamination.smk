@@ -66,6 +66,8 @@ rule kraken_pe:
         reads=expand("QC/reads/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS),
     log:
         "logs/qc/decontamination/{sample}.log",
+    benchmark:
+        "logs/benchmark/kraken2_human/{sample}.tsv"
     conda:
         "../envs/kraken.yaml"
     resources:
@@ -78,10 +80,10 @@ rule kraken_pe:
         " --threads {threads} "
         " --output - "
         " --report {output.report} "
-        " --unclassified-out {resources.tmpdir}/{wildcards.sample}_R#.fastq "
+        " --unclassified-out {resources.tmpdir}/{wildcards.sample}#.fastq "
         " --paired "
         " {input.reads} "
         " &> {log} "
         "; \n"
-        " gzip -c {resources.tmpdir}/{wildcards.sample}_R1.fastq > {output.reads[0]}  2>> {log} ; \n "
-        " gzip -c {resources.tmpdir}/{wildcards.sample}_R2.fastq > {output.reads[1]}  2>> {log} ; \n "
+        " pigz -p{threads} -c {resources.tmpdir}/{wildcards.sample}_1.fastq > {output.reads[0]}  2>> {log} ; \n "
+        " pigz -p{threads} -c {resources.tmpdir}/{wildcards.sample}_2.fastq > {output.reads[1]}  2>> {log} ; \n "
