@@ -96,14 +96,14 @@ rule quality_trimming:
         gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
         aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
         lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
-        khistout="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
+        khist="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
         enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
     log:
         "logs/qc/trim_quality/{sample}.log",
     threads: config["threads"]
     resources:
         mem_mb=config["mem_default"] * 1000,
-        time_min=config["time_default"] * 60,
+        time_min=config["time_long"] * 60,
     benchmark:
         "log/benchmark/quality_trimming/{sample}.tsv"
     params:
@@ -163,32 +163,33 @@ rule calculate_insert_size:
     wrapper:
         BBTOOLS_WRAPPER
 
-
-rule reporting_qc:
-    input:
-        get_quality_controlled_reads,
-    output:
-        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
-        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
-        bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
-        gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
-        aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
-        lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
-        khist="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
-        cardinality="Intermediate/stats/qc/{sample}/cardinality.txt",
-        enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
-    log:
-        "logs/qc/reporting_qc/{sample}.log",
-    benchmark:
-        "log/benchmark/reporting_qc/{sample}.tsv"
-    threads: config["threads_simple"]
-    resources:
-        mem_mb=config["mem_simple"] * 1000,
-    params:
-        command="bbduk.sh",
-        gcbins="auto",
-        json=True,
-        unpigz=True,
-        overwrite=True,
-    wrapper:
-        BBTOOLS_WRAPPER
+if False:
+    rule reporting_qc:
+        input:
+            get_quality_controlled_reads,
+        output:
+            bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
+            qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
+            bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
+            gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
+            aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
+            lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
+            khist="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
+            cardinality="Intermediate/stats/qc/{sample}/cardinality.txt",
+            enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
+        log:
+            "logs/qc/reporting_qc/{sample}.log",
+        benchmark:
+            "log/benchmark/reporting_qc/{sample}.tsv"
+        threads: config["threads_simple"]
+        resources:
+            mem_mb=config["mem_simple"] * 1000,
+        params:
+            command="bbduk.sh",
+            cardinality=True,
+            gcbins="auto",
+            json=True,
+            unpigz=True,
+            overwrite=True,
+        wrapper:
+            BBTOOLS_WRAPPER
