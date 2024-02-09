@@ -10,7 +10,7 @@ rule generate_sketch:
         "logs/screen/make_sketch/{sample}.log",
     threads: 1
     resources:
-        mem=config["mem_simple"],
+        mem_mb=config["mem_simple"]*1024,
     params:
         command="bbsketch.sh",
         processSSU=False,
@@ -30,11 +30,10 @@ rule compare_sketch:
     output:
         "QC/screen/sketch_comparison.tsv.gz",
     priority: 100
-    log:
-        "logs/screen/compare_sketch.log",
+    log: "logs/screen/compare_sketch.log",
     threads: 1
     resources:
-        mem=config["mem_default"],
+        mem_mb=config["mem_default"]*1024,
     params:
         command="comparesketch.sh",
         extra=lambda wc, input: f"alltoall {input.flag}",
@@ -49,7 +48,7 @@ rule send_sketch:
     input:
         rules.generate_sketch.output,
     output:
-        "Intermediate/screen/results/{sample}.tsv",
+        "Intermediate/screen/results/{sample}.json",
     log:
         "logs/screen/send_sketch/{sample}.log",
     threads: 1
@@ -57,11 +56,15 @@ rule send_sketch:
         mem=config["mem_simple"],
     params:
         command="sendsketch.sh",
+        records=250,
+        minkeycount=2,
         printdepth2=True,
         level=2,
         printqfname=True,
         printvolume=True,
         color=False,
+        printall=True,
+        d3=True,
         overwrite=True,
     wrapper:
         BBTOOLS_WRAPPER

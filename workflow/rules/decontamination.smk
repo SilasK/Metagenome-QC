@@ -60,9 +60,8 @@ rule kraken_pe:
             "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
             fraction=FRACTIONS,
         ),
-        db=Kraken_db_folder,
+        db=ancient(Kraken_db_folder),
     output:
-        report="Intermediate/reports/decontamination/{sample}.txt",
         reads=expand("QC/reads/{{sample}}_{fraction}.fastq.gz", fraction=FRACTIONS),
     log:
         "logs/qc/decontamination/{sample}.log",
@@ -79,7 +78,6 @@ rule kraken_pe:
         " --db {input.db} "
         " --threads {threads} "
         " --output - "
-        " --report {output.report} "
         " --unclassified-out {resources.tmpdir}/{wildcards.sample}#.fastq "
         " --paired "
         " {input.reads} "
@@ -87,3 +85,17 @@ rule kraken_pe:
         "; \n"
         " pigz -p{threads} -c {resources.tmpdir}/{wildcards.sample}_1.fastq > {output.reads[0]}  2>> {log} ; \n "
         " pigz -p{threads} -c {resources.tmpdir}/{wildcards.sample}_2.fastq > {output.reads[1]}  2>> {log} ; \n "
+
+
+
+
+localrules: kraken_stats
+rule kraken_stats:
+    input:
+        expand("logs/qc/decontamination/{sample}.log",sample=SAMPLES)
+    output:
+        "Intermediate/reports/decontamination_stats.csv"
+    log:
+        "logs/qc/summarize_decontamination.log",
+    script:
+        "../scripts/parse_kraken_output.py"

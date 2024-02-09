@@ -25,8 +25,6 @@ BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
 
 include: "rules/input_functions.smk"
-
-
 include: "rules/trimming.smk"
 
 
@@ -36,18 +34,21 @@ include: "rules/trimming.smk"
 get_screen_input_fastq = get_quality_controlled_reads
 
 
-#include: "rules/screen.smk"
+include: "rules/screen.smk"
 include: "rules/decontamination.smk"
 
 
 rule all:
     input:
-        expand("reports/{stage}/multiqc.html",stage=["quality_trimming","adapter_trimming"]),
+        expand(
+            "reports/{stage}/multiqc.html",
+            stage=["quality_trimming", "adapter_trimming"],
+        ),
         expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
-        expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
-
+        #expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
+        "Intermediate/reports/decontamination_stats.csv"
 
 
 ### pepulate resources for rules that don't have

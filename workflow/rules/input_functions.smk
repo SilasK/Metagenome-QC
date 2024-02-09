@@ -2,8 +2,10 @@
 
 pepfile: "sample_table_config.yaml"
 
-wildcard_constraints: 
-    sample="[A-Za-z0-9]+"
+
+wildcard_constraints:
+    sample="[A-Za-z0-9]+",
+
 
 # pepschema: f"{snakemake_dir.parent}/config/sample_table_schema.yaml"
 
@@ -30,3 +32,6 @@ def get_quality_controlled_reads(wildcards):
         fraction=FRACTIONS,
         sample=wildcards.sample,
     )
+
+
+get_screen_input_fastq = get_quality_controlled_reads

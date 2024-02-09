@@ -16,7 +16,7 @@ time_default: 5
 trim_mean_quality: 15
 trim_base_phred: 8
 trim_min_length: 75
-adapter_trimming_extra: "--trim_poly_g --trim_poly_a --adapter_fasta /srv/beegfs/scratch/users/k/kiesers/Databases/adapters.fa  --adapter_sequence=CTGTCTCTTATACACATCT --adapter_sequence_r2=ATGTGTATAAGAGACA"
+adapter_trimming_extra: "--trim_poly_g --adapter_fasta /srv/beegfs/scratch/users/k/kiesers/Databases/adapters.fa  --adapter_sequence=CTGTCTCTTATACACATCT --adapter_sequence_r2=ATGTGTATAAGAGACA"
 quality_trim_extra: ""
 
 ## BBduck

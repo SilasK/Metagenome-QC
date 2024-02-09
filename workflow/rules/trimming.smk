@@ -23,41 +23,39 @@
 #         "master/bio/bbtools"
 
 
-
 rule adapter_trimming:
     input:
         sample=get_raw_fastq,
     output:
-        trimmed=temp(expand(
-            "Intermediate/qc/reads/deduplicated/{{sample}}_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
-        )),
+        trimmed=temp(
+            expand(
+                "Intermediate/qc/reads/deduplicated/{{sample}}_{fraction}.fastq.gz",
+                fraction=FRACTIONS,
+            )
+        ),
         html="Intermediate/reports/adapter_trimming/{sample}.html",
         json="Intermediate/reports/adapter_trimming/{sample}.json",
     log:
         "logs/qc/{sample}/trimming.log",
     params:
         extra=f"--qualified_quality_phred 5 "
-        " --length_required 31 "        
+        " --length_required 31 "
+        " --overrepresentation_analysis "
         " --cut_tail "
         " --detect_adapter_for_pe "
         " --correction "
-        " --cut_tail "
         " --cut_tail_mean_quality 5 "
         " --dedup "
         " --dup_calc_accuracy 5 "
         '--report_title "Adapter trimming & Deduplication" '
-        " config[adapter_trimming_extra] "
+        f" {config['adapter_trimming_extra']} ",
     threads: config["threads"]
     benchmark:
         "logs/benchmark/adapter_trimming/{sample}.tsv"
     resources:
-        mem_mb=config["mem_default"]*1024,
+        mem_mb=config["mem_default"] * 1024,
     wrapper:
         "v3.3.3/bio/fastp"
-
-
-
 
 
 rule quality_trimming:
@@ -67,14 +65,16 @@ rule quality_trimming:
             fraction=FRACTIONS,
         ),
     output:
-        trimmed=temp(expand(
-            "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
-        )),
+        trimmed=temp(
+            expand(
+                "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
+                fraction=FRACTIONS,
+            )
+        ),
         html="Intermediate/reports/quality_trimming/{sample}.html",
         json="Intermediate/reports/quality_trimming/{sample}.json",
     log:
-        "logs/qc/{sample}/trimming.log",
+        "logs/qc/quality_trimming/{sample}.log",
     params:
         extra=f"--qualified_quality_phred {config['trim_base_phred']} "
         " --disable_adapter_trimming "
@@ -86,23 +86,15 @@ rule quality_trimming:
         " --cut_front "
         '--report_title "Quality trimming" '
         f" --cut_mean_quality {config['trim_mean_quality']} "
-        " {config[quality_trim_extra]} "
+        f" {config['quality_trim_extra']} ",
         # interfered cut_tail
     threads: config["threads"]
     benchmark:
         "logs/benchmark/quality_trimming/{sample}.tsv"
     resources:
-        mem_mb=config["mem_simple"]*1024,
+        mem_mb=config["mem_simple"] * 1024,
     wrapper:
         "v3.3.3/bio/fastp"
-
-
-
-
-
-
-
-
 
 
 rule multiqc_fastp:
@@ -112,16 +104,14 @@ rule multiqc_fastp:
         "reports/{stage}/multiqc.html",
         directory("reports/{stage}/multiqc_data"),
     params:
-        extra="--data-dir",
+        extra="--data-dir --fn_as_s_name ",
     log:
         "logs/multiqc/{stage}.log",
     threads: 1
     resources:
-        mem_mb=config["mem_simple"]*1024,
+        mem_mb=config["mem_simple"] * 1024,
     wrapper:
         "v3.3.3/bio/multiqc"
-
-
 
 
 rule calculate_insert_size:
@@ -135,7 +125,7 @@ rule calculate_insert_size:
         "log/benchmark/calculate_insert_size/{sample}.tsv"
     threads: config["threads_simple"]
     resources:
-        mem_mb=config["mem_simple"] * 1024,
+        mem_mb=config["mem_default"] * 1024,
     params:
         command="bbmerge.sh",
         extend2=50,
@@ -144,7 +134,7 @@ rule calculate_insert_size:
         extra="loose",
         mininsert0=25,
         minoverlap0=8,
-        realloc=True,
+        prealloc=True,
         prefilter=True,
         merge=False,
         minprob=0.8,

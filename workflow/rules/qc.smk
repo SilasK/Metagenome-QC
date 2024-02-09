@@ -133,37 +133,8 @@ rule quality_trimming:
 #### Reporting
 
 
-rule calculate_insert_size:
-    input:
-        get_quality_controlled_reads,
-    output:
-        ihist="Intermediate/stats/qc/{sample}/insert_sizes.txt",
-    log:
-        "logs/qc/insert_size/{sample}.log",
-    benchmark:
-        "log/benchmark/calculate_insert_size/{sample}.tsv"
-    threads: config["threads_simple"]
-    resources:
-        mem_mb=config["mem_simple"] * 1000,
-    params:
-        command="bbmerge.sh",
-        extend2=50,
-        k=62,
-        iterations=3,
-        extra="loose",
-        mininsert0=25,
-        minoverlap0=8,
-        realloc=True,
-        prefilter=True,
-        merge=False,
-        minprob=0.8,
-        pigz=True,
-        unpigz=True,
-        overwrite=True,
-    wrapper:
-        BBTOOLS_WRAPPER
-
 if False:
+
     rule reporting_qc:
         input:
             get_quality_controlled_reads,
