@@ -1,69 +1,33 @@
-# rule initialize_qc:
-#     input:
-#         get_raw_fastq,
-#     output:
-#         temp(
-#             expand(
-#                 "Intermediate/qc/raw/{{sample}}_{fraction}.fastq.gz",
-#                 fraction=FRACTIONS,
-#             )
-#         ),
-#     priority: 80
-#     log:
-#         "logs/qc/{sample}/init_qc.log",
-#     threads: config["threads"]
-#     resources:
-#         mem=config["mem_default"],
-#     params:
-#         command="reformat.sh",
-#         overwrite=True,
-#         verifypaired=True,
-#         extra=config["importqc_params"],
-#     wrapper:
-#         "master/bio/bbtools"
-
-
-rule adapter_trimming:
+rule initialize_qc:
     input:
-        sample=get_raw_fastq,
+        get_raw_fastq,
     output:
-        trimmed=temp(
+        temp(
             expand(
-                "Intermediate/qc/reads/deduplicated/{{sample}}_{fraction}.fastq.gz",
+                "Intermediate/qc/raw/{{sample}}_{fraction}.fastq.gz",
                 fraction=FRACTIONS,
             )
         ),
-        html="Intermediate/reports/adapter_trimming/{sample}.html",
-        json="Intermediate/reports/adapter_trimming/{sample}.json",
+    priority: 80
     log:
-        "logs/qc/{sample}/trimming.log",
-    params:
-        extra=f"--qualified_quality_phred 5 "
-        " --length_required 31 "
-        " --overrepresentation_analysis "
-        " --cut_tail "
-        " --detect_adapter_for_pe "
-        " --correction "
-        " --cut_tail_mean_quality 5 "
-        " --dedup "
-        " --dup_calc_accuracy 5 "
-        '--report_title "Adapter trimming & Deduplication" '
-        f" {config['adapter_trimming_extra']} ",
+        "logs/qc/{sample}/init_qc.log",
     threads: config["threads"]
-    benchmark:
-        "logs/benchmark/adapter_trimming/{sample}.tsv"
     resources:
-        mem_mb=config["mem_default"] * 1024,
+        mem=config["mem_default"],
+    params:
+        command="reformat.sh",
+        overwrite=True,
+        verifypaired=True,
+        extra=config["importqc_params"],
     wrapper:
-        "v3.3.3/bio/fastp"
+        BBTOOLS_WRAPPER
+
+
 
 
 rule quality_trimming:
     input:
-        sample=expand(
-            "Intermediate/qc/reads/deduplicated/{{sample}}_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
-        ),
+        sample= rules.initialize_qc.output,
     output:
         trimmed=temp(
             expand(
@@ -77,11 +41,13 @@ rule quality_trimming:
         "logs/qc/quality_trimming/{sample}.log",
     params:
         extra=f"--qualified_quality_phred {config['trim_base_phred']} "
-        " --disable_adapter_trimming "
-        " --disable_trim_poly_g "
-        " --dont_eval_duplication "
+        " --dedup "
+        " --dup_calc_accuracy 5 "
         f" --length_required {config['trim_min_length']} "
         " --low_complexity_filter"
+        " --detect_adapter_for_pe "
+        " --correction "
+        " --overrepresentation_analysis "
         " --cut_tail "
         " --cut_front "
         '--report_title "Quality trimming" '
@@ -92,27 +58,28 @@ rule quality_trimming:
     benchmark:
         "logs/benchmark/quality_trimming/{sample}.tsv"
     resources:
-        mem_mb=config["mem_simple"] * 1024,
+        mem_mb=config["mem_default"] * 1024,
     wrapper:
         "v3.3.3/bio/fastp"
 
 
 rule multiqc_fastp:
     input:
-        expand("Intermediate/reports/{{stage}}/{sample}.json", sample=SAMPLES),
+        expand(rules.quality_trimming.output.json, sample=SAMPLES),
     output:
-        "reports/{stage}/multiqc.html",
-        directory("reports/{stage}/multiqc_data"),
+        "reports/quality_trimming/multiqc.html",
+        directory("reports/quality_trimming/multiqc_data"),
     params:
         extra="--data-dir --fn_as_s_name ",
     log:
-        "logs/multiqc/{stage}.log",
+        "logs/multiqc/quality_trimming.log",
     threads: 1
     resources:
         mem_mb=config["mem_simple"] * 1024,
     wrapper:
         "v3.3.3/bio/multiqc"
 
+### Reporting 
 
 rule calculate_insert_size:
     input:
@@ -139,6 +106,36 @@ rule calculate_insert_size:
         merge=False,
         minprob=0.8,
         pigz=True,
+        unpigz=True,
+        overwrite=True,
+    wrapper:
+        BBTOOLS_WRAPPER
+
+
+rule reporting_qc:
+    input:
+        get_quality_controlled_reads,
+    output:
+        bhist="Intermediate/stats/qc/{sample}/base_profile.txt",
+        qhist="Intermediate/stats/qc/{sample}/quality_profile.txt",
+        bqhist="Intermediate/stats/qc/{sample}/quality_boxplots.txt",
+        gchist="Intermediate/stats/qc/{sample}/gc_histogram.txt",
+        aqhist="Intermediate/stats/qc/{sample}/average_quality.txt",
+        lhist="Intermediate/stats/qc/{sample}/length_histogram.txt",
+        khist="Intermediate/stats/qc/{sample}/kmer_histogram.txt",
+        cardinality="Intermediate/stats/qc/{sample}/cardinality.txt",
+        enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
+    log:
+        "logs/qc/reporting_qc/{sample}.log",
+    benchmark:
+        "log/benchmark/reporting_qc/{sample}.tsv"
+    threads: config["threads_simple"]
+    resources:
+        mem_mb=config["mem_simple"] * 1000,
+    params:
+        command="bbduk.sh",
+        gcbins="auto",
+        json=True,
         unpigz=True,
         overwrite=True,
     wrapper:

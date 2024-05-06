@@ -3,14 +3,18 @@
 pepfile: "sample_table_config.yaml"
 
 
+sample_name_constraint = "[A-Za-z][A-Za-z0-9]+"
 wildcard_constraints:
-    sample="[A-Za-z0-9]+",
+    sample=sample_name_constraint,
 
 
 # pepschema: f"{snakemake_dir.parent}/config/sample_table_schema.yaml"
 
 
 SAMPLES = pep.sample_table["sample_name"]
+
+# checks
+assert  pep.sample_table.index.str.match(sample_name_constraint).all(), "Not all sample names correspond to sample name criteria"
 PAIRED = pep.sample_table.columns.str.contains("R2").any()
 
 if PAIRED:

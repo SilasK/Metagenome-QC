@@ -41,14 +41,12 @@ include: "rules/decontamination.smk"
 rule all:
     input:
         expand(
-            "reports/{stage}/multiqc.html",
-            stage=["quality_trimming", "adapter_trimming"],
-        ),
-        expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
-        #expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
-        "Intermediate/reports/decontamination_stats.csv"
+        expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
+        #expand("Intermediate/stats/qc/{sample}/gc_histogram.txt", sample=SAMPLES),
+        "Intermediate/reports/decontamination_stats.csv",
+        "reports/quality_trimming/multiqc.html",
 
 
 ### pepulate resources for rules that don't have
