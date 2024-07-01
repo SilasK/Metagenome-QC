@@ -1,7 +1,7 @@
 # Use this file to define all default values
 
 threads_simple: 2
-threads: 8
+threads_default: 8
 
 mem_simple: 2
 mem_default: 20

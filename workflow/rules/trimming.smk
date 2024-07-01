@@ -11,7 +11,7 @@ rule initialize_qc:
     priority: 80
     log:
         "logs/qc/{sample}/init_qc.log",
-    threads: config["threads"]
+    threads: config["threads_default"]
     resources:
         mem=config["mem_default"],
     params:
@@ -53,8 +53,7 @@ rule quality_trimming:
         '--report_title "Quality trimming" '
         f" --cut_mean_quality {config['trim_mean_quality']} "
         f" {config['quality_trim_extra']} ",
-        # interfered cut_tail
-    threads: config["threads"]
+    threads: config["threads_default"]
     benchmark:
         "logs/benchmark/quality_trimming/{sample}.tsv"
     resources:
@@ -90,7 +89,7 @@ rule calculate_insert_size:
         "logs/qc/insert_size/{sample}.log",
     benchmark:
         "log/benchmark/calculate_insert_size/{sample}.tsv"
-    threads: config["threads_simple"]
+    threads: config["threads_default"]
     resources:
         mem_mb=config["mem_default"] * 1024,
     params:
@@ -129,9 +128,9 @@ rule reporting_qc:
         "logs/qc/reporting_qc/{sample}.log",
     benchmark:
         "log/benchmark/reporting_qc/{sample}.tsv"
-    threads: config["threads_simple"]
+    threads: config["threads_default"]
     resources:
-        mem_mb=config["mem_simple"] * 1000,
+        mem_mb=config["mem_default"] * 1000,
     params:
         command="bbduk.sh",
         gcbins="auto",

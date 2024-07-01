@@ -71,7 +71,7 @@ rule deduplicate_reads:
         pigz=True,
         unpigz=True,
         dedupe=config["deduplicate_reads"],
-    threads: config["threads"]
+    threads: config["threads_default"]
     resources:
         mem_mb=config["mem_large"] * 1000,
         time_min=config["time_short"] * 60,
@@ -100,7 +100,7 @@ rule quality_trimming:
         enthist="Intermediate/stats/qc/{sample}/entropy_histogram.txt",
     log:
         "logs/qc/trim_quality/{sample}.log",
-    threads: config["threads"]
+    threads: config["threads_default"]
     resources:
         mem_mb=config["mem_default"] * 1000,
         time_min=config["time_long"] * 60,

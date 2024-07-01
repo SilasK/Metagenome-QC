@@ -43,7 +43,7 @@ rule all:
         expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
-        expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
+        #expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
         #expand("Intermediate/stats/qc/{sample}/gc_histogram.txt", sample=SAMPLES),
         "Intermediate/reports/decontamination_stats.csv",
         "reports/quality_trimming/multiqc.html",
@@ -52,14 +52,7 @@ rule all:
 ### pepulate resources for rules that don't have
 
 for r in workflow.rules:
-    if not "mem_mb" in r.resources:
-        # default
-        r.resources["mem_mb"] = config["mem_default"] * 1000
 
-    # add time if ot present. Simple jobs use simple time
-
-    if "time_min" not in r.resources:
-        r.resources["time_min"] = config["time_default"] * 60
 
     if not "runtime" in r.resources:
         r.resources["runtime"] = r.resources["time_min"]

@@ -58,7 +58,7 @@ rule kraken_pe:
     input:
         reads=expand(
             "Intermediate/qc/reads/trimmed/{{sample}}_{fraction}.fastq.gz",
-            fraction=FRACTIONS,
+            fraction=["R1","R2"],
         ),
         db=ancient(Kraken_db_folder),
     output:
@@ -72,7 +72,7 @@ rule kraken_pe:
     resources:
         mem_mb=calculate_kraken_memory,
         time_min=config["time_short"] * 60,
-    threads: config["threads"]
+    threads: config["threads_default"]
     shell:
         " kraken2 "
         " --db {input.db} "
