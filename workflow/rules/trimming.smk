@@ -1,33 +1,38 @@
-rule initialize_qc:
-    input:
-        get_raw_fastq,
-    output:
-        temp(
-            expand(
-                "Intermediate/qc/raw/{{sample}}_{fraction}.fastq.gz",
-                fraction=FRACTIONS,
-            )
-        ),
-    priority: 80
-    log:
-        "logs/qc/{sample}/init_qc.log",
-    threads: config["threads_default"]
-    resources:
-        mem=config["mem_default"],
-    params:
-        command="reformat.sh",
-        overwrite=True,
-        verifypaired=True,
-        extra=config["importqc_params"],
-    wrapper:
-        BBTOOLS_WRAPPER
 
+if config.get("reformat_fastq",False):
 
+    rule initialize_qc:
+        input:
+            get_raw_fastq,
+        output:
+            temp(
+                expand(
+                    "Intermediate/qc/raw/{{sample}}_{fraction}.fastq.gz",
+                    fraction=FRACTIONS,
+                )
+            ),
+        priority: 80
+        log:
+            "logs/qc/{sample}/init_qc.log",
+        threads: config["threads_default"]
+        resources:
+            mem=config["mem_default"],
+        params:
+            command="reformat.sh",
+            overwrite=True,
+            verifypaired=True,
+            extra=config["importqc_params"],
+        wrapper:
+            BBTOOLS_WRAPPER
+
+    input_for_quality_trimming = "rules.initialize_qc.output"
+else:
+    input_for_quality_trimming = get_raw_fastq
 
 
 rule quality_trimming:
     input:
-        sample= rules.initialize_qc.output,
+        sample= input_for_quality_trimming
     output:
         trimmed=temp(
             expand(
@@ -74,7 +79,7 @@ rule multiqc_fastp:
         "logs/multiqc/quality_trimming.log",
     threads: 1
     resources:
-        mem_mb=config["mem_simple"] * 1024,
+        mem_mb=config["mem_default"] * 1024,
     wrapper:
         "v3.3.3/bio/multiqc"
 

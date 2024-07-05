@@ -24,7 +24,7 @@ DB_DIR = Path(config["database_dir"])
 BBTOOLS_WRAPPER = "v3.3.3/bio/bbtools"
 
 
-include: "rules/input_functions.smk"
+include: "rules/sample_table.smk"
 include: "rules/trimming.smk"
 
 
@@ -43,10 +43,14 @@ rule all:
         expand(
             "QC/reads/{sample}_{fraction}.fastq.gz", fraction=FRACTIONS, sample=SAMPLES
         ),
-        #expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
-        #expand("Intermediate/stats/qc/{sample}/gc_histogram.txt", sample=SAMPLES),
         "Intermediate/reports/decontamination_stats.csv",
         "reports/quality_trimming/multiqc.html",
+
+
+rule reporting:
+    input:
+        expand("Intermediate/stats/qc/{sample}/insert_sizes.txt", sample=SAMPLES),
+        expand("Intermediate/stats/qc/{sample}/gc_histogram.txt", sample=SAMPLES),
 
 
 ### pepulate resources for rules that don't have

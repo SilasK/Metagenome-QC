@@ -36,7 +36,7 @@ def get_kraken_db_files():
     return multiext(f"{Kraken_db_folder}/", *kraken_db_files)
 
 
-Kraken_db_size = 0
+Kraken_db_size = None
 
 
 def calculate_kraken_memory(overhead=7000):
